@@ -22,6 +22,18 @@ export async function GET(req) {
     const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
     const firstMenuDate = new Date(sortedMenus[0].date); // First menu date = Day 1
 
+    // ✅ Determine which menu to fetch based on current time
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    if (currentHour >= 19) {
+      // If it's after 19:00, move to the **next day**
+      now.setDate(now.getDate() + 1);
+    }
+
+    const targetDate = now.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+
+    // If a specific day is requested
     if (queryDay) {
       // Convert the requested day into an actual date based on the first Ramadan day
       const requestedDate = new Date(firstMenuDate);
@@ -37,8 +49,14 @@ export async function GET(req) {
       return new Response(JSON.stringify(menu), { status: 200 });
     }
 
-    // Return all menus
-    return new Response(JSON.stringify(allMenus), { status: 200 });
+    // Fetch the menu for the calculated **target date**
+    const menuForToday = allMenus.find((m) => m.date === targetDate);
+
+    if (!menuForToday) {
+      return new Response(JSON.stringify({ error: "Menu not found for today" }), { status: 404 });
+    }
+
+    return new Response(JSON.stringify(menuForToday), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Error fetching menu", details: error.message }), { status: 500 });
   }

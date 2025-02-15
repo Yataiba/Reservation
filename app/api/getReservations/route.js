@@ -12,9 +12,31 @@ export async function GET(req) {
     const url = new URL(req.url);
     const dateQuery = url.searchParams.get("date"); // Allow filtering by date
 
+    // ✅ Fetch all menu entries to determine the first day of Ramadan
+    const allMenus = await db.collection("ramadan_menu").find().toArray();
+
+    if (!allMenus.length) {
+      return new Response(JSON.stringify({ error: "No menu data available" }), { status: 404 });
+    }
+
+    // ✅ Determine the first day of Ramadan dynamically
+    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+    const firstMenuDate = new Date(sortedMenus[0].date); // First menu date = Day 1
+
+    // ✅ Determine the current reservation date
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    if (currentHour >= 19) {
+      now.setDate(now.getDate() + 1); // Move to the next day if it's after 19:00
+    }
+    const reservationDate = now.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+
     let query = {};
     if (dateQuery) {
       query.date = dateQuery; // Fetch reservations for a specific date
+    } else {
+      query.date = reservationDate; // Default: Fetch today's reservations (or tomorrow’s after 19:00)
     }
 
     // ✅ Fetch all reservations or filter by date
