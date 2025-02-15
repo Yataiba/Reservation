@@ -17,21 +17,10 @@ export default function RamadanReservation() {
 
   useEffect(() => {
     const today = new Date();
-    const ramadanStart = new Date(2025, 2, 1); // March 1, 2025 (0-based month index)
-    
-    // Calculate which Ramadan day it is
-    let diffDays = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24)) + 1;
+    const ramadanStart = new Date(2025, 2, 1); // Adjust Ramadan start date (March 1, 2025)
+    const diffDays = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24));
+    const nextDay = diffDays + 2; // Reservation for the NEXT day
 
-    // Ensure we only request valid Ramadan days (1-29)
-    if (diffDays < 1) {
-      diffDays = 1; // If before Ramadan, start from Day 1
-    } else if (diffDays > 29) {
-      diffDays = 29; // If after Ramadan, default to last valid day
-    }
-
-    // Fetch the correct menu for the **next day** (diffDays + 1)
-    const nextDay = diffDays + 1;
-    
     fetch(`/api/menu?day=${nextDay}`)
       .then((res) => res.json())
       .then((data) => {
@@ -52,18 +41,18 @@ export default function RamadanReservation() {
     const updateCountdown = () => {
       const now = new Date();
       const startReservation = new Date();
-      startReservation.setHours(00, 0, 0, 0); // Reservations open at 19:00
-      const closeTime = new Date();
-      closeTime.setHours(23, 59, 59, 999); // Close at 23:59
+      startReservation.setHours(0, 0, 0, 0); // 00:00 ()
+      const midnight = new Date();
+      midnight.setHours(23, 59, 59, 999); // 23:59 (11:59 PM)
 
       if (now < startReservation) {
         const timeLeft = startReservation - now;
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        setCountdown(`Reservations open in ${hours}h ${minutes}m`);
+        setCountdown(`Reservations start in ${hours}h ${minutes}m`);
         setCanReserve(false);
-      } else if (now >= startReservation && now <= closeTime) {
-        const timeLeft = closeTime - now;
+      } else if (now >= startReservation && now <= midnight) {
+        const timeLeft = midnight - now;
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         setCountdown(`${hours}h ${minutes}m left to reserve`);
