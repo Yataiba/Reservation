@@ -5,38 +5,45 @@ export const runtime = "nodejs"; // Ensure it's a server function
 
 export async function POST(req) {
   try {
-    // ✅ Ensure database connection
     await dbConnect();
-    const db = mongoose.connection.db; // ✅ Use mongoose's db connection
+    const db = mongoose.connection.db;
 
-    const { name, phone, people, type } = await req.json();
+    const body = await req.json();
+    console.log("Received body:", body); // 🔍 Debugging request body
+
+    const { name, phone, people, type } = body;
 
     if (!name || !phone || !people || !type) {
-      return new Response(JSON.stringify({ error: "All fields are required" }), { status: 400 });
+      return new Response(JSON.stringify({ error: "All fields are required", received: body }), { status: 400 });
     }
 
-    // Get today's date and calculate the reservation day
+    // ✅ Ensure correct menu retrieval
     const today = new Date();
-    const ramadanStart = new Date(2025, 2, 1); // March 1, 2025
-    const day = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24)) + 2; // Next day
+    const ramadanStart = new Date(2025, 2, 1);
+    const day = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24)) + 2;
 
-    // Retrieve the correct menu date
+    console.log("Fetching menu for day:", day); // 🔍 Debugging menu fetch
+
     const menu = await db.collection("ramadan_menu").findOne({ day });
 
     if (!menu) {
       return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 400 });
     }
 
-    const reservationDate = menu.date; // Use the menu's date
+    console.log("Menu found:", menu); // 🔍 Debugging fetched menu
+
+    const reservationDate = menu.date;
 
     const result = await db.collection("reservations").insertOne({
       name,
       phone,
       people,
       type,
-      day,  
-      date: reservationDate, // ✅ Save the correct menu date
+      day,
+      date: reservationDate,
     });
+
+    console.log("Reservation saved:", result.insertedId); // 🔍 Debugging successful insert
 
     return new Response(JSON.stringify({ message: "Reservation saved successfully", id: result.insertedId }), { status: 201 });
   } catch (error) {
