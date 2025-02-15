@@ -14,7 +14,7 @@ export default function RamadanReservation() {
     const updateCountdown = () => {
       const now = new Date();
       const iftarTime = new Date();
-      iftarTime.setHours(8, 30, 0, 0);
+      iftarTime.setHours(17, 30, 0, 0);
       if (now < iftarTime) {
         setIsOpen(false);
         setCountdown("Reservations open after Iftar.");
