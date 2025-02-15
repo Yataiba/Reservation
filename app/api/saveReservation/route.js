@@ -17,20 +17,30 @@ export async function POST(req) {
       return new Response(JSON.stringify({ error: "All fields are required", received: body }), { status: 400 });
     }
 
-    // ✅ Ensure correct menu retrieval
-    const today = new Date();
-    const ramadanStart = new Date(2025, 2, 1);
-    const day = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24)) + 2;
+    // ✅ Fetch all menus and determine first day of Ramadan
+    const allMenus = await db.collection("ramadan_menu").find().toArray();
 
-    console.log("Fetching menu for day:", day); // 🔍 Debugging menu fetch
-
-    const menu = await db.collection("ramadan_menu").findOne({ day });
-
-    if (!menu) {
-      return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 400 });
+    if (!allMenus.length) {
+      return new Response(JSON.stringify({ error: "No menu data available" }), { status: 400 });
     }
 
-    console.log("Menu found:", menu); // 🔍 Debugging fetched menu
+    // Sort menus by date to find first Ramadan day
+    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date));
+    const firstMenuDate = new Date(sortedMenus[0].date);
+
+    // Calculate tomorrow's date based on the first Ramadan day
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const formattedTomorrow = tomorrow.toISOString().split("T")[0];
+
+    // Fetch the menu for the correct date
+    const menu = allMenus.find((m) => m.date === formattedTomorrow);
+
+    if (!menu) {
+      return new Response(JSON.stringify({ error: "Menu not found for this date", date: formattedTomorrow }), { status: 400 });
+    }
+
+    console.log("Menu found for reservation:", menu); // 🔍 Debugging fetched menu
 
     const reservationDate = menu.date;
 
@@ -39,8 +49,7 @@ export async function POST(req) {
       phone,
       people,
       type,
-      day,
-      date: reservationDate,
+      date: reservationDate, // ✅ Save the correct menu date
     });
 
     console.log("Reservation saved:", result.insertedId); // 🔍 Debugging successful insert

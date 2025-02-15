@@ -1,29 +1,44 @@
 import dbConnect from "../dbConnect";
 import mongoose from "mongoose";
 
-
 export const runtime = "nodejs"; // Ensure server environment
 
 export async function GET(req) {
   try {
     await dbConnect();
     const db = mongoose.connection.db;
-
+    
     const url = new URL(req.url);
-    const day = url.searchParams.get("day");
+    const queryDay = url.searchParams.get("day"); // Requested day (if provided)
 
-    if (day) {
-      // Fetch a specific day's menu
-      const menu = await db.collection("ramadan_menu").findOne({ day: parseInt(day) });
+    // Fetch all menu entries
+    const allMenus = await db.collection("ramadan_menu").find().toArray();
+
+    if (!allMenus.length) {
+      return new Response(JSON.stringify({ error: "No menu data available" }), { status: 404 });
+    }
+
+    // ✅ Determine the first day of Ramadan dynamically
+    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+    const firstMenuDate = new Date(sortedMenus[0].date); // First menu date = Day 1
+
+    if (queryDay) {
+      // Convert the requested day into an actual date based on the first Ramadan day
+      const requestedDate = new Date(firstMenuDate);
+      requestedDate.setDate(firstMenuDate.getDate() + parseInt(queryDay) - 1);
+
+      // Fetch the menu for the requested date
+      const menu = allMenus.find((m) => m.date === requestedDate.toISOString().split("T")[0]);
+
       if (!menu) {
         return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 404 });
       }
+
       return new Response(JSON.stringify(menu), { status: 200 });
-    } else {
-      // Fetch all menus if no specific day is requested
-      const allMenus = await db.collection("ramadan_menu").find().toArray();
-      return new Response(JSON.stringify(allMenus), { status: 200 });
     }
+
+    // Return all menus
+    return new Response(JSON.stringify(allMenus), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Error fetching menu", details: error.message }), { status: 500 });
   }
@@ -36,13 +51,16 @@ export async function PUT(req) {
 
     const { day, date, menu } = await req.json();
 
-    if (!day || !date || !menu) {
-      return new Response(JSON.stringify({ error: "All fields (day, date, menu) are required" }), { status: 400 });
+    if (!date || !menu) {
+      return new Response(JSON.stringify({ error: "Date and menu are required" }), { status: 400 });
     }
 
+    // Ensure `date` is stored in YYYY-MM-DD format
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+
     await db.collection("ramadan_menu").updateOne(
-      { day: parseInt(day) },
-      { $set: { date, menu } },
+      { date: formattedDate },
+      { $set: { date: formattedDate, menu } },
       { upsert: true }
     );
 
