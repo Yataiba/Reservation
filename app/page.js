@@ -47,7 +47,7 @@ export default function RamadanReservation() {
     const updateCountdown = () => {
       const now = new Date();
       const openTime = new Date();
-      openTime.setHours(19, 0, 0, 0); // Open at 19:00
+      openTime.setHours(0, 0, 0, 0); // Open at 19:00
 
       const closeTime = new Date();
       closeTime.setHours(23, 59, 59, 999); // Close at 23:59

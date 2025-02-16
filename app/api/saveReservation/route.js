@@ -25,7 +25,7 @@ export async function POST(req) {
     const currentHour = now.getHours();
     
     // ✅ Ensure reservations are only open from 19:00 - 23:59
-    if (currentHour < 19 || currentHour >= 24) {
+    if (currentHour < 0 || currentHour >= 24) {
       return new Response(
         JSON.stringify({ error: "Reservations are only allowed from 19:00 to 23:59." }),
         { status: 400 }
