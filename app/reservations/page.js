@@ -90,7 +90,7 @@ export default function ViewReservations() {
         phone: editReservation.phone,
         people: editReservation.people,
         type: editReservation.type,
-        Date: editReservation.date,
+        Date: editReservation.type,
       }),
     });
 
