@@ -9,7 +9,8 @@ export async function GET(req) {
     const db = mongoose.connection.db;
     
     const url = new URL(req.url);
-    const queryDay = url.searchParams.get("day"); // Requested day (if provided)
+    const queryDay = url.searchParams.get("day");
+    const queryDate = url.searchParams.get("date");
 
     // Fetch all menu entries
     const allMenus = await db.collection("ramadan_menu").find().toArray();
@@ -18,21 +19,29 @@ export async function GET(req) {
       return new Response(JSON.stringify({ error: "No menu data available" }), { status: 404 });
     }
 
-    // ✅ Always fetch the menu for the next calendar day dynamically
-    const today = new Date();
-    today.setDate(today.getDate() + 1); // Move to the next day
-    const targetDate = today.toISOString().split("T")[0];
+    // Ensure menus are sorted by date
+    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    console.log(`Fetching menu for: ${targetDate}`);
-
-    // Fetch the menu for the next day
-    const menuForNextDay = allMenus.find((m) => m.date === targetDate);
-
-    if (!menuForNextDay) {
-      return new Response(JSON.stringify({ error: "Menu not found for next day" }), { status: 404 });
+    // If requesting by a specific day number
+    if (queryDay) {
+      const menu = allMenus.find((m) => m.day === parseInt(queryDay));
+      if (!menu) {
+        return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 404 });
+      }
+      return new Response(JSON.stringify(menu), { status: 200 });
     }
 
-    return new Response(JSON.stringify(menuForNextDay), { status: 200 });
+    // If requesting by date (used by pre-reservation system)
+    if (queryDate) {
+      const menu = allMenus.find((m) => m.date === queryDate);
+      if (!menu) {
+        return new Response(JSON.stringify({ error: "Menu not found for this date" }), { status: 404 });
+      }
+      return new Response(JSON.stringify(menu), { status: 200 });
+    }
+
+    // Return all menus (for admin & reservations filtering)
+    return new Response(JSON.stringify(sortedMenus), { status: 200 });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Error fetching menu", details: error.message }), { status: 500 });
   }
@@ -63,7 +72,7 @@ export async function PUT(req) {
         .toArray();
 
       if (latestMenu.length > 0) {
-        assignedDay = latestMenu[0].day + 1; // ✅ Increment latest day correctly
+        assignedDay = latestMenu[0].day + 1; // Increment latest day
       } else {
         assignedDay = 1; // Start from Day 1 if no entries exist
       }
