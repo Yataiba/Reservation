@@ -4,48 +4,37 @@ import mongoose from "mongoose";
 export const runtime = "nodejs"; // Ensure server environment
 
 export async function GET(req) {
-  try {
-    await dbConnect();
-    const db = mongoose.connection.db;
-    
-    const url = new URL(req.url);
-    const queryDay = url.searchParams.get("day");
-    const queryDate = url.searchParams.get("date");
-
-    // Fetch all menu entries
-    const allMenus = await db.collection("ramadan_menu").find().toArray();
-
-    if (!allMenus.length) {
-      return new Response(JSON.stringify({ error: "No menu data available" }), { status: 404 });
-    }
-
-    // Ensure menus are sorted by date
-    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    // If requesting by a specific day number
-    if (queryDay) {
-      const menu = allMenus.find((m) => m.day === parseInt(queryDay));
-      if (!menu) {
-        return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 404 });
+    try {
+      await dbConnect();
+      const db = mongoose.connection.db;
+  
+      const url = new URL(req.url);
+      const queryDay = url.searchParams.get("day"); // Requested day (if provided)
+  
+      // Fetch all menu entries
+      const allMenus = await db.collection("ramadan_menu").find().toArray();
+  
+      if (!allMenus.length) {
+        return new Response(JSON.stringify([]), { status: 200 }); // Return empty array instead of an error
       }
-      return new Response(JSON.stringify(menu), { status: 200 });
-    }
-
-    // If requesting by date (used by pre-reservation system)
-    if (queryDate) {
-      const menu = allMenus.find((m) => m.date === queryDate);
-      if (!menu) {
-        return new Response(JSON.stringify({ error: "Menu not found for this date" }), { status: 404 });
+  
+      // If a specific day is requested, return it as an array to match frontend expectations
+      if (queryDay) {
+        const menu = allMenus.find((m) => m.day === parseInt(queryDay));
+  
+        if (!menu) {
+          return new Response(JSON.stringify([]), { status: 200 }); // Return empty array if no menu found
+        }
+  
+        return new Response(JSON.stringify([menu]), { status: 200 }); // Return as array
       }
-      return new Response(JSON.stringify(menu), { status: 200 });
+  
+      return new Response(JSON.stringify(allMenus), { status: 200 });
+    } catch (error) {
+      return new Response(JSON.stringify({ error: "Error fetching menu", details: error.message }), { status: 500 });
     }
-
-    // Return all menus (for admin & reservations filtering)
-    return new Response(JSON.stringify(sortedMenus), { status: 200 });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Error fetching menu", details: error.message }), { status: 500 });
   }
-}
+  
 
 export async function PUT(req) {
   try {
