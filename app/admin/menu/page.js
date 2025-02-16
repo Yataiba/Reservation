@@ -14,18 +14,16 @@ export default function AdminMenu() {
     fetch("/api/menu")
       .then((res) => res.json())
       .then((data) => {
+        console.log("Fetched menus in frontend:", data); // Debugging log
         if (Array.isArray(data)) {
-          setMenus(data);
+          setMenus(data); // ✅ Only update state if data is an array
         } else {
-          console.error("Unexpected API response:", data);
-          setMenus([]); // Set empty array if response is not an array
+          console.error("Unexpected API response format:", data);
         }
       })
-      .catch((error) => {
-        console.error("Error fetching menus:", error);
-        setMenus([]); // Prevents map() from failing
-      });
+      .catch((error) => console.error("Error fetching menus:", error));
   }, []);
+  
 
   // Handle edit button click
   const handleEdit = (day) => {

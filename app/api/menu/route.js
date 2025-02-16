@@ -4,50 +4,40 @@ import mongoose from "mongoose";
 export const runtime = "nodejs"; // Ensure server environment
 
 export async function GET(req) {
-  try {
-    await dbConnect();
-    const db = mongoose.connection.db;
-
-    const url = new URL(req.url);
-    const queryDay = url.searchParams.get("day"); // Requested day (if provided)
-
-    // Fetch all menu entries
-    const allMenus = await db.collection("ramadan_menu").find().toArray();
-
-    if (!allMenus.length) {
-      return new Response(JSON.stringify({ error: "No menu data available" }), { status: 404 });
-    }
-
-    // ✅ Sort menus by date to determine the first day dynamically
-    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date));
-    const firstMenuDate = new Date(sortedMenus[0].date); // First menu date = Day 1
-
-    // ✅ Ensure each menu entry has a `day` field based on its position
-    const menusWithDays = sortedMenus.map((menu, index) => ({
-      day: index + 1, // Day 1 is the first menu entry
-      date: menu.date,
-      menu: menu.menu,
-    }));
-
-    // ✅ Handle fetching a specific day if requested
-    if (queryDay) {
-      const requestedMenu = menusWithDays.find((m) => m.day === parseInt(queryDay));
-      if (!requestedMenu) {
-        return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 404 });
+    try {
+      await dbConnect();
+      const db = mongoose.connection.db;
+      
+      const url = new URL(req.url);
+      const queryDay = url.searchParams.get("day"); // Requested day (if provided)
+  
+      // Fetch all menu entries
+      const allMenus = await db.collection("ramadan_menu").find().toArray();
+  
+      console.log("Fetched Menus from DB:", allMenus); // Debugging log
+  
+      if (!Array.isArray(allMenus) || allMenus.length === 0) {
+        return new Response(JSON.stringify([]), { status: 200 }); // ✅ Return an empty array instead of an error
       }
-      return new Response(JSON.stringify(requestedMenu), { status: 200 });
+  
+      // ✅ Ensure dates are formatted correctly
+      const formattedMenus = allMenus.map((menu) => ({
+        ...menu,
+        date: new Date(menu.date).toISOString().split("T")[0], // Ensure date format is YYYY-MM-DD
+      }));
+  
+      // If a specific day is requested
+      if (queryDay) {
+        const menuForDay = formattedMenus.find((m) => m.day === parseInt(queryDay));
+        return new Response(JSON.stringify(menuForDay ? [menuForDay] : []), { status: 200 }); // ✅ Ensure array response
+      }
+  
+      return new Response(JSON.stringify(formattedMenus), { status: 200 }); // ✅ Always return an array
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+      return new Response(JSON.stringify([]), { status: 500 }); // ✅ Always return an array, even on error
     }
-
-    // ✅ Return all menus with day numbers included
-    return new Response(JSON.stringify(menusWithDays), { status: 200 });
-
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: "Error fetching menu", details: error.message }),
-      { status: 500 }
-    );
   }
-}
 
 export async function PUT(req) {
   try {
