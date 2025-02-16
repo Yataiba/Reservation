@@ -103,8 +103,8 @@ export default function RamadanReservation() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white min-h-screen text-center">
-      <h1 className="text-2xl font-bold text-black">Ramadan Pre-Reservation</h1>
+    <div className="max-w-xl mx-auto p-6 bg-white min-h-screen">
+      <h1 className="text-2xl font-bold">Ramadan Pre-Reservation</h1>
 
       {loading && <p className="text-blue-500">Loading menu...</p>}
 
@@ -116,11 +116,11 @@ export default function RamadanReservation() {
 
       {!loading && !error && day && (
         <>
-          <h2 className="text-lg font-semibold mt-2 text-black">
+          <h2 className="text-lg font-semibold mt-2">
             Reservation for: <strong>{date}</strong>
           </h2>
 
-          <p className="text-md text-black">Menu: <strong>{menu}</strong></p>
+          <p className="text-md">Menu: <strong>{menu}</strong></p>
           <p className="text-red-500">{countdown}</p>
 
           <form onSubmit={handleSubmit} className="mt-4">
