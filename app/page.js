@@ -90,14 +90,10 @@ export default function RamadanReservation() {
       return;
     }
 
-    const nextDay = new Date(date);
-    nextDay.setDate(nextDay.getDate() + 1); // Move to the next day
-    const formattedNextDate = nextDay.toISOString().split("T")[0]; // Ensure correct format
-    
     const response = await fetch("/api/saveReservation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...formData, date: formattedNextDate }), // ✅ Saving the next day's menu date
+      body: JSON.stringify({ ...formData, date }), // ✅ Saving the correct menu date
     });
 
     if (response.ok) {
