@@ -37,10 +37,10 @@ export default function ViewReservations() {
   useEffect(() => {
     let filtered = reservations;
 
-    // ✅ Filter by menu date
+    // ✅ Filter by menu date (not reservation submission date)
     if (selectedDate) {
       filtered = filtered.filter((res) =>
-        res.date.startsWith(selectedDate) // Compare using stored menu date
+        res.date.startsWith(selectedDate) // Compare using the stored menu date
       );
     }
 
@@ -120,13 +120,16 @@ export default function ViewReservations() {
           onChange={(e) => setSelectedDate(e.target.value)}
         >
           <option value="">All Days</option>
-          {menus
-            .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date
-            .map((menu) => (
-              <option key={menu.date} value={menu.date}>
-                Day {menu.day} - {menu.date} ({menu.menu})
-              </option>
-            ))}
+          {[...new Set(menus.map((menu) => menu.date))] // Extract unique dates dynamically
+            .sort((a, b) => new Date(a) - new Date(b)) // Sort by date
+            .map((date) => {
+              const menu = menus.find((m) => m.date === date);
+              return (
+                <option key={date} value={date}>
+                  Day {menu.day} - {date} ({menu.menu})
+                </option>
+              );
+            })}
         </select>
       </div>
 
@@ -246,6 +249,21 @@ export default function ViewReservations() {
             >
               <option value="dine-in">Dine-In</option>
               <option value="takeaway">Takeaway</option>
+            </select>
+
+            <label className="block mt-2">Date:</label>
+            <select
+              className="w-full p-2 border rounded"
+              value={editReservation.date}
+              onChange={(e) =>
+                setEditReservation({ ...editReservation, date: e.target.value })
+              }
+            >
+              {menus.map((menu) => (
+                <option key={menu.date} value={menu.date}>
+                  Day {menu.day} - {menu.date} ({menu.menu})
+                </option>
+              ))}
             </select>
 
             <div className="flex justify-end mt-4">
