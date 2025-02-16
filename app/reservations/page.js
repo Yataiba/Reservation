@@ -27,6 +27,8 @@ export default function ViewReservations() {
       .then((data) => {
         if (Array.isArray(data)) {
           setMenus(data);
+	  const dates = [...new Set(data.map((menu) => menu.date))].sort((a, b) => new Date(a) - new Date(b));
+	setAvailableDates(dates);
         } else {
           console.error("Unexpected menu API response:", data);
         }
