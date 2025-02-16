@@ -27,17 +27,13 @@ export default function ViewReservations() {
       .then((data) => {
         if (Array.isArray(data)) {
           setMenus(data);
-          // Extract and sort unique dates
-          const dates = [...new Set(data.map((menu) => menu.date))].sort(
-            (a, b) => new Date(a) - new Date(b)
-          );
-          setAvailableDates(dates);
         } else {
           console.error("Unexpected menu API response:", data);
         }
       })
       .catch((error) => console.error("Error fetching menus:", error));
   }, []);
+  
 
   // Filter reservations when the selected date, type, or search query changes
   useEffect(() => {
