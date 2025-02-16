@@ -20,11 +20,11 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Get current time
+    // ✅ Get the current time and adjust for time zones if needed
     const now = new Date();
     const currentHour = now.getHours();
-    
-    // ✅ Ensure reservations are only open from 19:00 - 23:59
+
+    // ✅ Reservations are only allowed between 19:00 - 23:59
     if (currentHour < 19 || currentHour >= 24) {
       return new Response(
         JSON.stringify({ error: "Reservations are only allowed from 19:00 to 23:59." }),
@@ -48,6 +48,18 @@ export async function POST(req) {
     }
 
     console.log("Menu found:", menu); // Debugging fetched menu
+
+    // ✅ Prevent duplicate reservations for the same person & date
+    const existingReservation = await db
+      .collection("reservations")
+      .findOne({ phone, date: nextDayDate });
+
+    if (existingReservation) {
+      return new Response(
+        JSON.stringify({ error: "You already have a reservation for this day." }),
+        { status: 400 }
+      );
+    }
 
     // ✅ Save reservation for the **next day's menu**
     const result = await db.collection("reservations").insertOne({
