@@ -37,7 +37,7 @@ export default function AdminMenu() {
   // Add new menu day
   const handleNew = () => {
     const lastDay = menus.length > 0 ? Math.max(...menus.map((m) => m.day)) : 0;
-    setEditDay(lastDay + 1);
+    setEditDay(lastDay);
     setDate(new Date().toISOString().split("T")[0]);
     setMenu("");
     setIsNew(true);
