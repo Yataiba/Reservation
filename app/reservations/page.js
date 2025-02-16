@@ -23,17 +23,16 @@ export default function ViewReservations() {
   // Fetch all menus and extract available dates
   useEffect(() => {
     fetch("/api/menu")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setMenus(data);
-	  const dates = [...new Set(data.map((menu) => menu.date))].sort((a, b) => new Date(a) - new Date(b));
-	setAvailableDates(dates);
-        } else {
-          console.error("Unexpected menu API response:", data);
-        }
-      })
-      .catch((error) => console.error("Error fetching menus:", error));
+  .then((res) => res.json())
+  .then((data) => {
+    if (Array.isArray(data)) {
+      setMenus(data); // Correctly set the menu list
+    } else {
+      console.error("Unexpected API response:", data);
+    }
+  })
+  .catch((error) => console.error("Error fetching menus:", error));
+
   }, []);
   
 
