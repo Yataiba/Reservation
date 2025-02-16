@@ -120,11 +120,16 @@ export default function ViewReservations() {
           onChange={(e) => setSelectedDate(e.target.value)}
         >
           <option value="">All Days</option>
-          {menus.map((menu) => (
-            <option key={menu.date} value={menu.date}>
-              Day {menu.day} - {menu.date} ({menu.menu})
-            </option>
-          ))}
+          {[...new Set(menus.map((menu) => menu.date))] // Extract unique dates dynamically
+            .sort((a, b) => new Date(a) - new Date(b)) // Sort by date
+            .map((date) => {
+              const menu = menus.find((m) => m.date === date);
+              return (
+                <option key={date} value={date}>
+                  Day {menu.day} - {date} ({menu.menu})
+                </option>
+              );
+            })}
         </select>
       </div>
 
