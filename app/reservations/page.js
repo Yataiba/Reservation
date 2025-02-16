@@ -6,6 +6,7 @@ export default function ViewReservations() {
   const [reservations, setReservations] = useState([]);
   const [filteredReservations, setFilteredReservations] = useState([]);
   const [menus, setMenus] = useState([]);
+  const [availableDates, setAvailableDates] = useState([]); // Store available dates
   const [selectedDate, setSelectedDate] = useState("");
   const [editReservation, setEditReservation] = useState(null);
   const [filter, setFilter] = useState("");
@@ -19,13 +20,18 @@ export default function ViewReservations() {
       .catch((error) => console.error("Error fetching reservations:", error));
   }, []);
 
-  // Fetch all menus
+  // Fetch all menus and extract available dates
   useEffect(() => {
     fetch("/api/menu")
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
           setMenus(data);
+          // Extract and sort unique dates
+          const dates = [...new Set(data.map((menu) => menu.date))].sort(
+            (a, b) => new Date(a) - new Date(b)
+          );
+          setAvailableDates(dates);
         } else {
           console.error("Unexpected menu API response:", data);
         }
@@ -33,25 +39,20 @@ export default function ViewReservations() {
       .catch((error) => console.error("Error fetching menus:", error));
   }, []);
 
-  // Filter reservations when the selected date or type changes
+  // Filter reservations when the selected date, type, or search query changes
   useEffect(() => {
     let filtered = reservations;
 
-    // ✅ Filter by menu date (not reservation submission date)
     if (selectedDate) {
-      filtered = filtered.filter((res) =>
-        res.date.startsWith(selectedDate) // Compare using the stored menu date
-      );
+      filtered = filtered.filter((res) => res.date === selectedDate);
     }
 
-    // Filter by type (Dine-In/Takeaway)
     if (filter) {
       filtered = filtered.filter(
         (res) => res.type.toLowerCase() === filter.toLowerCase()
       );
     }
 
-    // Filter by search query (name)
     if (searchQuery) {
       filtered = filtered.filter((res) =>
         res.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -90,7 +91,7 @@ export default function ViewReservations() {
         phone: editReservation.phone,
         people: editReservation.people,
         type: editReservation.type,
-        date: editReservation.date, // Ensure date is updated
+        date: editReservation.date,
       }),
     });
 
@@ -120,16 +121,14 @@ export default function ViewReservations() {
           onChange={(e) => setSelectedDate(e.target.value)}
         >
           <option value="">All Days</option>
-          {[...new Set(menus.map((menu) => menu.date))] // Extract unique dates dynamically
-            .sort((a, b) => new Date(a) - new Date(b)) // Sort by date
-            .map((date) => {
-              const menu = menus.find((m) => m.date === date);
-              return (
-                <option key={date} value={date}>
-                  Day {menu.day} - {date} ({menu.menu})
-                </option>
-              );
-            })}
+          {availableDates.map((date) => {
+            const menu = menus.find((m) => m.date === date);
+            return (
+              <option key={date} value={date}>
+                Day {menu.day} - {date} ({menu.menu})
+              </option>
+            );
+          })}
         </select>
       </div>
 
@@ -175,8 +174,7 @@ export default function ViewReservations() {
                 <strong>Type:</strong> {res.type}
               </p>
               <p>
-                <strong>Date:</strong>{" "}
-                {new Date(res.date).toISOString().split("T")[0]}
+                <strong>Date:</strong> {res.date}
               </p>
             </div>
             <div>
@@ -249,21 +247,6 @@ export default function ViewReservations() {
             >
               <option value="dine-in">Dine-In</option>
               <option value="takeaway">Takeaway</option>
-            </select>
-
-            <label className="block mt-2">Date:</label>
-            <select
-              className="w-full p-2 border rounded"
-              value={editReservation.date}
-              onChange={(e) =>
-                setEditReservation({ ...editReservation, date: e.target.value })
-              }
-            >
-              {menus.map((menu) => (
-                <option key={menu.date} value={menu.date}>
-                  Day {menu.day} - {menu.date} ({menu.menu})
-                </option>
-              ))}
             </select>
 
             <div className="flex justify-end mt-4">
