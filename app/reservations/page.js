@@ -90,7 +90,7 @@ export default function ViewReservations() {
         phone: editReservation.phone,
         people: editReservation.people,
         type: editReservation.type,
-        date: editReservation.date, // Ensure date is updated
+        Date: editReservation.date,
       }),
     });
 
@@ -246,26 +246,17 @@ export default function ViewReservations() {
               <option value="takeaway">Takeaway</option>
             </select>
 
-            <label className="block mt-2">Date:</label>
-            <select
-              className="w-full p-2 border rounded"
-              value={editReservation.date}
-              onChange={(e) =>
-                setEditReservation({ ...editReservation, date: e.target.value })
-              }
-            >
-              {menus.map((menu) => (
-                <option key={menu.date} value={menu.date}>
-                  Day {menu.day} - {menu.date} ({menu.menu})
-                </option>
-              ))}
-            </select>
-
             <div className="flex justify-end mt-4">
-              <button className="bg-gray-500 text-white px-4 py-1 rounded mr-2" onClick={() => setEditReservation(null)}>
+              <button
+                className="bg-gray-500 text-white px-4 py-1 rounded mr-2"
+                onClick={() => setEditReservation(null)}
+              >
                 Cancel
               </button>
-              <button className="bg-green-500 text-white px-4 py-1 rounded" onClick={handleUpdate}>
+              <button
+                className="bg-green-500 text-white px-4 py-1 rounded"
+                onClick={handleUpdate}
+              >
                 Save Changes
               </button>
             </div>
