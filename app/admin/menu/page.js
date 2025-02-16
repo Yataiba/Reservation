@@ -12,16 +12,16 @@ export default function AdminMenu() {
   // Fetch all menus when the page loads
   useEffect(() => {
     fetch("/api/menu")
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Fetched Menus:", data); // 🔍 Debugging log
-        if (Array.isArray(data)) {
-          setMenus(data); // ✅ Store as array
-        } else {
-          setMenus([]); // ❌ Handle unexpected responses
-        }
-      })
-      .catch((error) => console.error("Error fetching menus:", error));
+    .then((res) => res.json())
+    .then((data) => {
+      if (Array.isArray(data)) {
+        setMenus(data); // Correctly set the menu list
+      } else {
+        console.error("Unexpected API response:", data);
+      }
+    })
+    .catch((error) => console.error("Error fetching menus:", error));
+  
   }, []);
   
 
