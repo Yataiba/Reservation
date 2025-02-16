@@ -14,11 +14,11 @@ export default function AdminMenu() {
     fetch("/api/menu")
       .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched menus in frontend:", data); // Debugging log
+        console.log("Fetched Menus:", data); // 🔍 Debugging log
         if (Array.isArray(data)) {
-          setMenus(data); // ✅ Only update state if data is an array
+          setMenus(data); // ✅ Store as array
         } else {
-          console.error("Unexpected API response format:", data);
+          setMenus([]); // ❌ Handle unexpected responses
         }
       })
       .catch((error) => console.error("Error fetching menus:", error));
