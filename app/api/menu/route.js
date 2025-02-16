@@ -4,47 +4,52 @@ import mongoose from "mongoose";
 export const runtime = "nodejs"; // Ensure server environment
 
 export async function GET(req) {
-    try {
-      await dbConnect();
-      const db = mongoose.connection.db;
-      
-      const url = new URL(req.url);
-      const queryDay = url.searchParams.get("day"); // Requested day (if provided)
-  
-      // Fetch all menu entries
-      const allMenus = await db.collection("ramadan_menu").find().toArray();
-  
-      console.log("Fetched Menus from DB:", allMenus); // Debugging log
-  
-      if (!Array.isArray(allMenus) || allMenus.length === 0) {
-        return new Response(JSON.stringify([]), { status: 200 }); // ✅ Return an empty array instead of an error
-      }
-  
-      // ✅ Ensure dates are formatted correctly
-      const formattedMenus = allMenus.map((menu) => ({
-        ...menu,
-        date: new Date(menu.date).toISOString().split("T")[0], // Ensure date format is YYYY-MM-DD
-      }));
-  
-      // If a specific day is requested
-      if (queryDay) {
-        const menuForDay = formattedMenus.find((m) => m.day === parseInt(queryDay));
-        return new Response(JSON.stringify(menuForDay ? [menuForDay] : []), { status: 200 }); // ✅ Ensure array response
-      }
-  
-      return new Response(JSON.stringify(formattedMenus), { status: 200 }); // ✅ Always return an array
-    } catch (error) {
-      console.error("Error fetching menu:", error);
-      return new Response(JSON.stringify([]), { status: 500 }); // ✅ Always return an array, even on error
+  try {
+    await dbConnect();
+    const db = mongoose.connection.db;
+    
+    const url = new URL(req.url);
+    const queryDay = url.searchParams.get("day"); // Requested day (if provided)
+
+    // Fetch all menu entries
+    const allMenus = await db.collection("ramadan_menu").find().toArray();
+
+    if (!allMenus.length) {
+      return new Response(JSON.stringify({ error: "No menu data available" }), { status: 404 });
     }
+
+    // ✅ Determine the first day of Ramadan dynamically
+    const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+    const firstMenuDate = new Date(sortedMenus[0].date); // First menu date = Day 1
+
+    if (queryDay) {
+      // Convert the requested day into an actual date based on the first Ramadan day
+      const requestedDate = new Date(firstMenuDate);
+      requestedDate.setDate(firstMenuDate.getDate() + parseInt(queryDay) - 1);
+
+      // Fetch the menu for the requested date
+      const menu = allMenus.find((m) => m.date === requestedDate.toISOString().split("T")[0]);
+
+      if (!menu) {
+        return new Response(JSON.stringify({ error: "Menu not found for this day" }), { status: 404 });
+      }
+
+      return new Response(JSON.stringify(menu), { status: 200 });
+    }
+
+    // Return all menus
+    return new Response(JSON.stringify(allMenus), { status: 200 });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "Error fetching menu", details: error.message }), { status: 500 });
   }
+}
 
 export async function PUT(req) {
   try {
     await dbConnect();
     const db = mongoose.connection.db;
 
-    const { date, menu } = await req.json();
+    const { day, date, menu } = await req.json();
 
     if (!date || !menu) {
       return new Response(JSON.stringify({ error: "Date and menu are required" }), { status: 400 });
@@ -60,11 +65,7 @@ export async function PUT(req) {
     );
 
     return new Response(JSON.stringify({ message: "Menu updated successfully" }), { status: 200 });
-
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: "Error updating menu", details: error.message }),
-      { status: 500 }
-    );
+    return new Response(JSON.stringify({ error: "Error updating menu", details: error.message }), { status: 500 });
   }
 }
