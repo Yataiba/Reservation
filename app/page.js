@@ -8,8 +8,8 @@ export default function RamadanReservation() {
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [countdown, setCountdown] = useState("");
-  const [canReserve, setCanReserve] = useState(false);
+  const [countdown, setCountdown] = useState(""); 
+  const [canReserve, setCanReserve] = useState(false); 
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,11 +23,12 @@ export default function RamadanReservation() {
     setError(null);
 
     const today = new Date();
-    today.setDate(today.getDate() + 1);
+    today.setDate(today.getDate() + 1); // ✅ Always use the next day's date
     const reservationDate = today.toISOString().split("T")[0];
 
     console.log(`Fetching menu for next day: ${reservationDate}`);
 
+    // ✅ Fetch menu for next day's date
     fetch(`/api/menu?date=${reservationDate}`)
       .then((res) => {
         if (!res.ok) throw new Error("Menu data not found");
@@ -44,13 +45,14 @@ export default function RamadanReservation() {
       })
       .finally(() => setLoading(false));
 
+    // ✅ Countdown timer logic
     const updateCountdown = () => {
       const now = new Date();
       const openTime = new Date();
-      openTime.setHours(19, 0, 0, 0);
+      openTime.setHours(19, 0, 0, 0); // Reservations open at 19:00
 
       const closeTime = new Date();
-      closeTime.setHours(23, 59, 59, 999);
+      closeTime.setHours(23, 59, 59, 999); // Close at 23:59
 
       if (now < openTime) {
         const timeLeft = openTime - now;
@@ -71,55 +73,22 @@ export default function RamadanReservation() {
     };
 
     updateCountdown();
-    const timerInterval = setInterval(updateCountdown, 60000);
+    const timerInterval = setInterval(updateCountdown, 60000); // Update every minute
 
     return () => clearInterval(timerInterval);
   }, []);
 
-  // Validate Name (Only Letters and Spaces)
-  const validateName = (name) => /^[A-Za-z\s]+$/.test(name);
-
-  // Validate Turkish Phone Number (Must Start with "05" and Have 11 Digits)
-  const validatePhone = (phone) => /^05\d{9}$/.test(phone);
-
-  // Handle Input Changes with Validation
+  // Handle form input changes
   const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "name" && value && !validateName(value)) {
-      return;
-    }
-
-    if (name === "phone" && value && !validatePhone(value)) {
-      return;
-    }
-
-    if (name === "people") {
-      const num = parseInt(value, 10);
-      if (num < 1 || num > 10) {
-        return;
-      }
-    }
-
-    setFormData({ ...formData, [name]: value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle Form Submission
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!canReserve) {
       alert("Reservations are only allowed between 19:00 - 23:59.");
-      return;
-    }
-
-    if (!validateName(formData.name)) {
-      alert("Please enter a valid name (letters and spaces only).");
-      return;
-    }
-
-    if (!validatePhone(formData.phone)) {
-      alert("Please enter a valid Turkish phone number (e.g., 05XXXXXXXXX).");
       return;
     }
 
@@ -138,17 +107,20 @@ export default function RamadanReservation() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-white min-h-screen">
+    <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-bold">Ramadan Pre-Reservation</h1>
 
+      {/* Show Loading State */}
       {loading && <p className="text-blue-500">Loading menu...</p>}
 
+      {/* Show Error State */}
       {error && (
         <p className="text-red-500">
           {error} <button onClick={() => window.location.reload()}>Retry</button>
         </p>
       )}
 
+      {/* Show Reservation Form Only If Day is Found */}
       {!loading && !error && day && (
         <>
           <h2 className="text-lg font-semibold mt-2">
@@ -158,12 +130,13 @@ export default function RamadanReservation() {
           <p className="text-md">Menu: <strong>{menu}</strong></p>
           <p className="text-red-500">{countdown}</p>
 
+          {/* Reservation Form */}
           <form onSubmit={handleSubmit} className="mt-4">
             <input
               type="text"
               name="name"
               placeholder="Enter your name"
-              className="w-full p-2 border rounded mb-2 text-black"
+              className="w-full p-2 border rounded mb-2"
               value={formData.name}
               onChange={handleChange}
               required
@@ -172,8 +145,8 @@ export default function RamadanReservation() {
             <input
               type="tel"
               name="phone"
-              placeholder="Enter phone number (05XXXXXXXXX)"
-              className="w-full p-2 border rounded mb-2 text-black"
+              placeholder="Enter phone number"
+              className="w-full p-2 border rounded mb-2"
               value={formData.phone}
               onChange={handleChange}
               required
@@ -182,18 +155,16 @@ export default function RamadanReservation() {
             <input
               type="number"
               name="people"
-              placeholder="Number of people (1-10)"
-              className="w-full p-2 border rounded mb-2 text-black"
+              placeholder="Number of people"
+              className="w-full p-2 border rounded mb-2"
               value={formData.people}
               onChange={handleChange}
               required
-              min="1"
-              max="10"
               disabled={!canReserve}
             />
             <select
               name="type"
-              className="w-full p-2 border rounded mb-4 text-black"
+              className="w-full p-2 border rounded mb-4"
               value={formData.type}
               onChange={handleChange}
               disabled={!canReserve}
