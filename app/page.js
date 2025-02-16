@@ -19,24 +19,23 @@ export default function RamadanReservation() {
     const today = new Date();
     const currentHour = today.getHours();
 
-    // ✅ Determine if reservations should be for today or tomorrow
+    // ✅ Ensure reservations are for **next day** if after 19:00
     if (currentHour >= 19) {
-      today.setDate(today.getDate() + 1); // Move to the next day if it's after 19:00
+      today.setDate(today.getDate() + 1);
     }
-    
-    const reservationDate = today.toISOString().split("T")[0];
+
+    const reservationDate = today.toISOString().split("T")[0]; // Format as YYYY-MM-DD
 
     // ✅ Fetch menu dynamically based on available menu dates
     fetch(`/api/menu?date=${reservationDate}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.menu) {
-          setDay(data.day); // Ensure correct Ramadan day is set
-          setMenu(data.menu);
-          setDate(data.date); // ✅ Correctly saving the menu date
-        } else {
+        if (data.error) {
           throw new Error("Menu data not found");
         }
+        setDay(data.day); // Ensure correct Ramadan day is set
+        setMenu(data.menu);
+        setDate(data.date); // ✅ Correctly saving the menu date
       })
       .catch((error) => {
         console.error("Failed to fetch menu:", error);
@@ -47,7 +46,7 @@ export default function RamadanReservation() {
     const updateCountdown = () => {
       const now = new Date();
       const openTime = new Date();
-      openTime.setHours(0, 0, 0, 0); // Open at 19:00
+      openTime.setHours(19, 0, 0, 0); // Reservations open at 19:00
 
       const closeTime = new Date();
       closeTime.setHours(23, 59, 59, 999); // Close at 23:59
