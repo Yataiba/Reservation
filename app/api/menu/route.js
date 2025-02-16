@@ -26,7 +26,7 @@ export async function GET(req) {
     const now = new Date();
     const currentHour = now.getHours();
 
-    if (currentHour >= 0) {
+    if (currentHour >= 19) {
       // If it's after 19:00, move to the **next day**
       now.setDate(now.getDate() + 1);
     }
