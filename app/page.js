@@ -6,11 +6,10 @@ export default function RamadanReservation() {
   const [day, setDay] = useState(null);
   const [menu, setMenu] = useState("");
   const [date, setDate] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [countdown, setCountdown] = useState(""); 
-  const [canReserve, setCanReserve] = useState(false); 
-
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
+  const [countdown, setCountdown] = useState(""); // Timer state
+  const [canReserve, setCanReserve] = useState(false); // Controls reservation availability
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -23,13 +22,20 @@ export default function RamadanReservation() {
     setError(null);
 
     const today = new Date();
-    today.setDate(today.getDate() + 1); // ✅ Always use the next day's date
-    const reservationDate = today.toISOString().split("T")[0];
+    const ramadanStart = new Date(2025, 1, 15); // Adjust to actual first day of Ramadan
+    const currentHour = today.getHours();
 
-    console.log(`Fetching menu for next day: ${reservationDate}`);
+    // ✅ Ensure reservations are for **next day** if after 19:00
+    if (currentHour >= 19) {
+      today.setDate(today.getDate() + 1);
+    }
 
-    // ✅ Fetch menu for next day's date
-    fetch(`/api/menu?date=${reservationDate}`)
+    // ✅ Calculate **Ramadan day number**
+    const diffDays = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24)) + 1;
+    const selectedDay = Math.min(Math.max(diffDays, 1), 29); // Ensure between 1-29
+
+    // ✅ Fetch menu dynamically based on Ramadan day
+    fetch(`/api/menu?day=${selectedDay}`)
       .then((res) => {
         if (!res.ok) throw new Error("Menu data not found");
         return res.json();
@@ -41,7 +47,7 @@ export default function RamadanReservation() {
       })
       .catch((error) => {
         console.error("Failed to fetch menu:", error);
-        setError("Menu not found for the next day.");
+        setError("Menu not found for this day.");
       })
       .finally(() => setLoading(false));
 
