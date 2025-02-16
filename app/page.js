@@ -22,20 +22,10 @@ export default function RamadanReservation() {
     setError(null);
 
     const today = new Date();
-    const ramadanStart = new Date(2025, 1, 15); // Adjust to actual first day of Ramadan
-    const currentHour = today.getHours();
+    today.setDate(today.getDate() + 1); // Always fetch for next day
+    const reservationDate = today.toISOString().split("T")[0];
 
-    // ✅ Ensure reservations are for **next day** if after 19:00
-    if (currentHour >= 19) {
-      today.setDate(today.getDate() + 1);
-    }
-
-    // ✅ Calculate **Ramadan day number**
-    const diffDays = Math.floor((today - ramadanStart) / (1000 * 60 * 60 * 24)) + 1;
-    const selectedDay = Math.min(Math.max(diffDays, 1), 29); // Ensure between 1-29
-
-    // ✅ Fetch menu dynamically based on Ramadan day
-    fetch(`/api/menu?day=${selectedDay}`)
+    fetch(`/api/menu?date=${reservationDate}`)
       .then((res) => {
         if (!res.ok) throw new Error("Menu data not found");
         return res.json();
@@ -47,42 +37,35 @@ export default function RamadanReservation() {
       })
       .catch((error) => {
         console.error("Failed to fetch menu:", error);
-        setError("Menu not found for this day.");
+        setError("Menu not found for this date.");
       })
       .finally(() => setLoading(false));
-
-    // ✅ Countdown timer logic
-    const updateCountdown = () => {
-      const now = new Date();
-      const openTime = new Date();
-      openTime.setHours(19, 0, 0, 0); // Reservations open at 19:00
-
-      const closeTime = new Date();
-      closeTime.setHours(23, 59, 59, 999); // Close at 23:59
-
-      if (now < openTime) {
-        const timeLeft = openTime - now;
-        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        setCountdown(`Reservations open in ${hours}h ${minutes}m`);
-        setCanReserve(false);
-      } else if (now >= openTime && now <= closeTime) {
-        const timeLeft = closeTime - now;
-        const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-        setCountdown(`${hours}h ${minutes}m left to reserve`);
-        setCanReserve(true);
-      } else {
-        setCountdown("Reservations are closed for today.");
-        setCanReserve(false);
-      }
-    };
-
-    updateCountdown();
-    const timerInterval = setInterval(updateCountdown, 60000); // Update every minute
-
-    return () => clearInterval(timerInterval);
   }, []);
+
+  return (
+    <div className="max-w-xl mx-auto p-6">
+      <h1 className="text-2xl font-bold">Ramadan Pre-Reservation</h1>
+
+      {loading && <p className="text-blue-500">Loading menu...</p>}
+
+      {error && (
+        <p className="text-red-500">
+          {error} <button onClick={() => window.location.reload()}>Retry</button>
+        </p>
+      )}
+
+      {!loading && !error && day && (
+        <>
+          <h2 className="text-lg font-semibold mt-2">
+            Reservation for: <strong>{date}</strong>
+          </h2>
+
+          <p className="text-md">Menu: <strong>{menu}</strong></p>
+        </>
+      )}
+    </div>
+  );
+}
 
   // Handle form input changes
   const handleChange = (e) => {
