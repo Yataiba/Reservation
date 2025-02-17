@@ -141,7 +141,7 @@ export default function ViewReservations() {
 
       {/* ✅ Add New Reservation Form */}
       <div className="border p-4 mb-6 rounded bg-gray-100">
-        <h3 className="text-lg font-semibold mb-3 text-center">Add New Reservation</h3>
+        <h3 className="text-lg font-semibold mb-3 text-center text-black" >Add New Reservation</h3>
         <form onSubmit={handleAddReservation}>
           <input
             type="text"
@@ -202,6 +202,7 @@ export default function ViewReservations() {
 
       {/* ✅ Filter Section */}
       <div className="mb-4 flex gap-4">
+      <h3 className="text-lg font-semibold mb-3 text-center text-black">Search for Reservations</h3>
       <select
           className="p-2 border rounded text-black"
           value={selectedDate}
