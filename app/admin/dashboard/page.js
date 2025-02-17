@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AdminMenu from "./menu"; // Import the existing menu management component
+import AdminMenu from "../menu/page"; // Import the existing menu management component
 import ViewReservations from "../../reservations/page"; // Import the existing reservations page
 
 export default function AdminDashboard() {
