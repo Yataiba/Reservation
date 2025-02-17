@@ -12,18 +12,16 @@ export default function AdminMenu() {
   // Fetch all menus when the page loads
   useEffect(() => {
     fetch("/api/menu")
-    .then((res) => res.json())
-    .then((data) => {
-      if (Array.isArray(data)) {
-        setMenus(data); // Correctly set the menu list
-      } else {
-        console.error("Unexpected API response:", data);
-      }
-    })
-    .catch((error) => console.error("Error fetching menus:", error));
-  
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setMenus(data); // Correctly set the menu list
+        } else {
+          console.error("Unexpected API response:", data);
+        }
+      })
+      .catch((error) => console.error("Error fetching menus:", error));
   }, []);
-  
 
   // Handle edit button click
   const handleEdit = (day) => {
@@ -37,7 +35,7 @@ export default function AdminMenu() {
   // Add new menu day
   const handleNew = () => {
     const lastDay = menus.length > 0 ? Math.max(...menus.map((m) => m.day)) : 0;
-    setEditDay(lastDay);
+    setEditDay(lastDay + 1);
     setDate(new Date().toISOString().split("T")[0]);
     setMenu("");
     setIsNew(true);
@@ -70,8 +68,8 @@ export default function AdminMenu() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-4">Admin - Manage Ramadan Menu</h2>
+    <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
+      <h2 className="text-2xl font-bold mb-4 text-center">Admin - Manage Ramadan Menu</h2>
 
       {/* Add New Day Button */}
       <button onClick={handleNew} className="bg-green-500 text-white px-4 py-2 rounded mb-4">
@@ -82,8 +80,8 @@ export default function AdminMenu() {
       {menus.length > 0 ? (
         <ul>
           {menus.map((m) => (
-            <li key={m.day} className="border p-4 mb-2 rounded flex justify-between items-center">
-              <div>
+            <li key={m.day} className="border p-4 mb-2 rounded flex justify-between items-center bg-gray-100">
+              <div className="text-black">
                 <p><strong>Day {m.day}:</strong> {m.date}</p>
                 <p><strong>Menu:</strong> {m.menu}</p>
               </div>
@@ -108,7 +106,7 @@ export default function AdminMenu() {
 
             <label className="block">Date:</label>
             <input
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -116,7 +114,7 @@ export default function AdminMenu() {
 
             <label className="block mt-2">Menu:</label>
             <input
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               type="text"
               value={menu}
               onChange={(e) => setMenu(e.target.value)}

@@ -189,6 +189,27 @@ export default function ViewReservations() {
         </select>
       </div>
 
+      {/* Filter Section */}
+      <div className="mb-4 flex gap-4">
+        <select
+          className="p-2 border rounded text-black"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <option value="">All</option>
+          <option value="Dine-In">Dine-In</option>
+          <option value="Takeaway">Takeaway</option>
+        </select>
+
+        <input
+          type="text"
+          placeholder="Search by Name"
+          className="p-2 border rounded text-black"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       {/* Reservations List */}
       <ul>
         {filteredReservations.map((res) => (
