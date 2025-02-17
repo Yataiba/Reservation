@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import AdminMenu from "./menu"; // Import the existing menu management component
-import ViewReservations from "../reservations/page"; // Import the existing reservations page
+import ViewReservations from "../../reservations/page"; // Import the existing reservations page
 
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false);
