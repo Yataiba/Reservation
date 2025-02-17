@@ -200,9 +200,10 @@ export default function ViewReservations() {
         </form>
       </div>
 
+      <div className="max-w-3xl mx-auto">
+      <h3 className="text-2xl font-bold mb-4 text-center">Search for Reservations</h3>
       {/* ✅ Filter Section */}
       <div className="mb-4 flex gap-4">
-      <h3 className="text-lg font-semibold mb-3 text-center text-black">Search for Reservations</h3>
       <select
           className="p-2 border rounded text-black"
           value={selectedDate}
@@ -233,7 +234,7 @@ export default function ViewReservations() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-
+      </div>
       {/* ✅ Reservations List */}
       <ul>
         {filteredReservations.map((res) => (
