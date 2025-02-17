@@ -34,9 +34,9 @@ export async function GET(req) {
 
     let query = {};
     if (dateQuery) {
-      query.date = dateQuery; // Fetch reservations for a specific date
+      query.date = { $eq: new Date(dateQuery).toISOString().split("T")[0] };
     } else {
-      query.date = reservationDate; // Default: Fetch today's reservations (or tomorrow’s after 19:00)
+      query.date = { $eq: new Date(reservationDate).toISOString().split("T")[0] };
     }
 
     // ✅ Fetch all reservations or filter by date

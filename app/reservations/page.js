@@ -41,7 +41,8 @@ export default function ViewReservations() {
     let filtered = reservations;
 
     if (selectedDate) {
-      filtered = filtered.filter((res) => res.date === selectedDate);
+      filtered = filtered.filter((res) => new Date(res.date).toISOString().split("T")[0] === selectedDate);
+
     }
 
     if (filter) {
