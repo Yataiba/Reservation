@@ -137,7 +137,7 @@ export default function ViewReservations() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
-      <h2 className="text-2xl font-bold mb-4 text-center">All Reservations</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center text-black">All Reservations</h2>
 
       {/* ✅ Add New Reservation Form */}
       <div className="border p-4 mb-6 rounded bg-gray-100">
@@ -201,7 +201,7 @@ export default function ViewReservations() {
       </div>
 
       <div className="max-w-3xl mx-auto">
-      <h3 className="text-2xl font-bold mb-4 text-center">Search for Reservations</h3>
+      <h3 className="text-2xl font-bold mb-4 text-center text-black">Search for Reservations</h3>
       {/* ✅ Filter Section */}
       <div className="mb-4 flex gap-4">
       <select
