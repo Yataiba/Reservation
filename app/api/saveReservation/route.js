@@ -11,7 +11,7 @@ export async function POST(req) {
     const body = await req.json();
     console.log("Received body:", body); // Debugging request body
 
-    const { name, phone, people, type } = body;
+    const { name, phone, people, type, date, isAdmin } = body;
 
     if (!name || !phone || !people || !type) {
       return new Response(
@@ -20,10 +20,43 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Get current time
+    // ✅ Admin reservation case (allows selecting any date)
+    if (isAdmin && date) {
+      console.log(`Admin creating reservation for date: ${date}`);
+
+      const menu = await db.collection("ramadan_menu").findOne({ date });
+
+      if (!menu) {
+        return new Response(
+          JSON.stringify({ error: "Menu not found for the selected date" }),
+          { status: 400 }
+        );
+      }
+
+      console.log("Admin menu found:", menu);
+
+      // ✅ Save reservation for the **selected date** by admin
+      const result = await db.collection("reservations").insertOne({
+        name,
+        phone,
+        people,
+        type,
+        day: menu.day,
+        date, // Use the provided date
+      });
+
+      console.log("Admin reservation saved:", result.insertedId);
+
+      return new Response(
+        JSON.stringify({ message: "Admin reservation saved successfully", id: result.insertedId }),
+        { status: 201 }
+      );
+    }
+
+    // ✅ Customer pre-reservation case (keeps original logic)
     const now = new Date();
     const currentHour = now.getHours();
-    
+
     // ✅ Ensure reservations are only open from 19:00 - 23:59
     if (currentHour < 0 || currentHour >= 24) {
       return new Response(
@@ -33,10 +66,10 @@ export async function POST(req) {
     }
 
     // ✅ Fetch the menu for the **NEXT** day
-    now.setDate(now.getDate() + 1); // Move to the next day
-    const nextDayDate = now.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    now.setDate(now.getDate() + 1);
+    const nextDayDate = now.toISOString().split("T")[0];
 
-    console.log("Fetching menu for date:", nextDayDate); // Debugging menu fetch
+    console.log("Fetching menu for date:", nextDayDate);
 
     const menu = await db.collection("ramadan_menu").findOne({ date: nextDayDate });
 
@@ -47,7 +80,7 @@ export async function POST(req) {
       );
     }
 
-    console.log("Menu found:", menu); // Debugging fetched menu
+    console.log("Menu found:", menu);
 
     // ✅ Save reservation for the **next day's menu**
     const result = await db.collection("reservations").insertOne({
@@ -56,10 +89,10 @@ export async function POST(req) {
       people,
       type,
       day: menu.day,
-      date: nextDayDate, // Ensure it saves the correct date
+      date: nextDayDate, // Keep customer reservation for next day
     });
 
-    console.log("Reservation saved:", result.insertedId); // Debugging successful insert
+    console.log("Customer reservation saved:", result.insertedId);
 
     return new Response(
       JSON.stringify({ message: "Reservation saved successfully", id: result.insertedId }),

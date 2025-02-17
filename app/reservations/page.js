@@ -88,7 +88,7 @@ export default function ViewReservations() {
     const response = await fetch("/api/saveReservation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newReservation),
+      body: JSON.stringify({ ...newReservation, isAdmin: true }), // ✅ Add isAdmin flag
     });
 
     if (response.ok) {
@@ -98,6 +98,7 @@ export default function ViewReservations() {
       alert("Failed to add reservation.");
     }
   };
+
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
