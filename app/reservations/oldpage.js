@@ -19,21 +19,15 @@ export default function ViewReservations() {
     date: "",
   });
 
-  // ✅ Fetch all reservations from API
+  // Fetch all reservations
   useEffect(() => {
     fetch("/api/getReservations")
       .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setReservations(data);
-        } else {
-          console.error("Unexpected reservations API response:", data);
-        }
-      })
+      .then((data) => setReservations(data))
       .catch((error) => console.error("Error fetching reservations:", error));
   }, []);
 
-  // ✅ Fetch all menus
+  // Fetch all menus
   useEffect(() => {
     fetch("/api/menu")
       .then((res) => res.json())
@@ -47,12 +41,12 @@ export default function ViewReservations() {
       .catch((error) => console.error("Error fetching menus:", error));
   }, []);
 
-  // ✅ Filter reservations dynamically when the selected date, type, or search query changes
+  // Filter reservations when the selected date, type, or search query changes
   useEffect(() => {
     let filtered = reservations;
 
     if (selectedDate) {
-      filtered = filtered.filter((res) => res.date === selectedDate);
+      filtered = filtered.filter((res) => new Date(res.date).toISOString().split("T")[0] === selectedDate);
     }
 
     if (filter) {
@@ -66,7 +60,7 @@ export default function ViewReservations() {
     setFilteredReservations(filtered);
   }, [selectedDate, reservations, filter, searchQuery]);
 
-  // ✅ Delete reservation function
+  // Delete reservation
   const deleteReservation = async (id) => {
     const response = await fetch("/api/deleteReservation", {
       method: "DELETE",
@@ -82,37 +76,7 @@ export default function ViewReservations() {
     }
   };
 
-  // ✅ Handle updating a reservation
-  const handleUpdate = async () => {
-    if (!editReservation || !editReservation._id) return;
-
-    const response = await fetch("/api/updateReservation", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: editReservation._id,
-        name: editReservation.name,
-        phone: editReservation.phone,
-        people: editReservation.people,
-        type: editReservation.type,
-        date: editReservation.date,
-      }),
-    });
-
-    if (response.ok) {
-      alert("Reservation updated!");
-      setReservations(
-        reservations.map((res) =>
-          res._id === editReservation._id ? { ...res, ...editReservation } : res
-        )
-      );
-      setEditReservation(null);
-    } else {
-      alert("Failed to update reservation.");
-    }
-  };
-
-  // ✅ Handle adding a new reservation (Admin)
+  // Handle adding a new reservation
   const handleAddReservation = async (e) => {
     e.preventDefault();
 
@@ -124,7 +88,7 @@ export default function ViewReservations() {
     const response = await fetch("/api/saveReservation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newReservation, isAdmin: true }), // ✅ Admin flag
+      body: JSON.stringify({ ...newReservation, isAdmin: true }), // ✅ Add isAdmin flag
     });
 
     if (response.ok) {
@@ -135,11 +99,12 @@ export default function ViewReservations() {
     }
   };
 
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
       <h2 className="text-2xl font-bold mb-4 text-center">All Reservations</h2>
 
-      {/* ✅ Add New Reservation Form */}
+      {/* Add New Reservation Form */}
       <div className="border p-4 mb-6 rounded bg-gray-100">
         <h3 className="text-lg font-semibold mb-3 text-center">Add New Reservation</h3>
         <form onSubmit={handleAddReservation}>
@@ -194,26 +159,39 @@ export default function ViewReservations() {
               </option>
             ))}
           </select>
-          <button type="submit" className="w-full bg-green-500 text-white p-2 rounded">
+          <button
+            type="submit"
+            className="w-full bg-green-500 text-white p-2 rounded"
+          >
             Add Reservation
           </button>
         </form>
       </div>
 
-      {/* ✅ Filter Section */}
-      <div className="mb-4 flex gap-4">
-      <select
-          className="p-2 border rounded text-black"
-          value={selectedDate}
+      {/* Day Selector */}
+      <div className="mb-4">
+        <label className="block text-lg font-semibold">Select Day:</label>
+        <select
+          className="w-full p-2 border rounded text-black"
+          value={selectedDate || ""}
           onChange={(e) => setSelectedDate(e.target.value)}
         >
-          <option value="">All Dates</option>
-          {menus.map((menu) => (
-            <option key={menu.date} value={menu.date}>
-              {menu.date} - {menu.menu}
-            </option>
-          ))}
+          <option value="">All Days</option>
+          {[...new Set(menus.map((menu) => menu.date))]
+            .sort((a, b) => new Date(a) - new Date(b))
+            .map((date) => {
+              const menu = menus.find((m) => m.date === date);
+              return (
+                <option key={date} value={date}>
+                  Day {menu.day} - {date} ({menu.menu})
+                </option>
+              );
+            })}
         </select>
+      </div>
+
+      {/* Filter Section */}
+      <div className="mb-4 flex gap-4">
         <select
           className="p-2 border rounded text-black"
           value={filter}
@@ -233,7 +211,7 @@ export default function ViewReservations() {
         />
       </div>
 
-      {/* ✅ Reservations List */}
+      {/* Reservations List */}
       <ul>
         {filteredReservations.map((res) => (
           <li key={res._id} className="border p-4 mb-2 rounded flex justify-between items-center bg-gray-100">
@@ -245,95 +223,14 @@ export default function ViewReservations() {
               <p><strong>Date:</strong> {res.date}</p>
             </div>
             <div>
-              <button onClick={() => setEditReservation(res)} className="bg-blue-500 text-white px-4 py-1 rounded mr-2">
-                Update
-              </button>
-              <button onClick={() => deleteReservation(res._id)} className="bg-red-500 text-white px-4 py-1 rounded">
+              <button className="bg-blue-500 text-white px-4 py-1 rounded mr-2">Update</button>
+              <button className="bg-red-500 text-white px-4 py-1 rounded" onClick={() => deleteReservation(res._id)}>
                 Delete
               </button>
             </div>
           </li>
         ))}
       </ul>
-
-      {/* Edit Reservation Modal */}
-      {editReservation && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Edit Reservation</h2>
-
-            <label className="block">Name:</label>
-            <input
-              className="w-full p-2 border rounded"
-              type="text"
-              value={editReservation.name}
-              onChange={(e) =>
-                setEditReservation({ ...editReservation, name: e.target.value })
-              }
-            />
-
-            <label className="block mt-2">Phone:</label>
-            <input
-              className="w-full p-2 border rounded"
-              type="text"
-              value={editReservation.phone}
-              onChange={(e) =>
-                setEditReservation({
-                  ...editReservation,
-                  phone: e.target.value,
-                })
-              }
-            />
-
-            <label className="block mt-2">People:</label>
-            <input
-              className="w-full p-2 border rounded"
-              type="number"
-              value={editReservation.people}
-              onChange={(e) =>
-                setEditReservation({
-                  ...editReservation,
-                  people: e.target.value,
-                })
-              }
-            />
-
-            <label className="block mt-2">Type:</label>
-            <select
-              className="w-full p-2 border rounded"
-              value={editReservation.type}
-              onChange={(e) =>
-                setEditReservation({ ...editReservation, type: e.target.value })
-              }
-            >
-              <option value="dine-in">Dine-In</option>
-              <option value="takeaway">Takeaway</option>
-            </select>
-            <label className="block mt-2">Date:</label>
-            <select
-              className="w-full p-2 border rounded"
-              value={editReservation.date}
-              onChange={(e) =>
-                setEditReservation({ ...editReservation, date: e.target.value })
-              }
-            >
-              {menus.map((menu) => (
-                <option key={menu.date} value={menu.date}>
-                  {menu.date} - {menu.menu}
-                </option>
-              ))}
-            </select>
-            <div className="flex justify-end mt-4">
-              <button className="bg-gray-500 text-white px-4 py-1 rounded mr-2" onClick={() => setEditReservation(null)}>
-                Cancel
-              </button>
-              <button className="bg-green-500 text-white px-4 py-1 rounded" onClick={handleUpdate}>
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
