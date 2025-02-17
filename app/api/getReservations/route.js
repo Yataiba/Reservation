@@ -23,20 +23,13 @@ export async function GET(req) {
     const sortedMenus = allMenus.sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
     const firstMenuDate = new Date(sortedMenus[0].date); // First menu date = Day 1
 
-    // ✅ Determine the current reservation date
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    if (currentHour >= 19) {
-      now.setDate(now.getDate() + 1); // Move to the next day if it's after 19:00
-    }
-    const reservationDate = now.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-
+    // ✅ If a date is provided, filter by that date; otherwise, fetch all reservations
     let query = {};
     if (dateQuery) {
-      query.date = { $eq: new Date(dateQuery).toISOString().split("T")[0] };
+      query.date = dateQuery; // ✅ Match the exact date string
+      console.log(`Filtering reservations by date: ${dateQuery}`);
     } else {
-      query.date = { $eq: new Date(reservationDate).toISOString().split("T")[0] };
+      console.log("Fetching all reservations (no date filter)");
     }
 
     // ✅ Fetch all reservations or filter by date

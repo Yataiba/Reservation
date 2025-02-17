@@ -19,15 +19,21 @@ export default function ViewReservations() {
     date: "",
   });
 
-  // Fetch all reservations
+  // ✅ Fetch all reservations from API
   useEffect(() => {
     fetch("/api/getReservations")
       .then((res) => res.json())
-      .then((data) => setReservations(data))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setReservations(data);
+        } else {
+          console.error("Unexpected reservations API response:", data);
+        }
+      })
       .catch((error) => console.error("Error fetching reservations:", error));
   }, []);
 
-  // Fetch all menus
+  // ✅ Fetch all menus
   useEffect(() => {
     fetch("/api/menu")
       .then((res) => res.json())
@@ -41,12 +47,12 @@ export default function ViewReservations() {
       .catch((error) => console.error("Error fetching menus:", error));
   }, []);
 
-  // Filter reservations when the selected date, type, or search query changes
+  // ✅ Filter reservations dynamically when the selected date, type, or search query changes
   useEffect(() => {
     let filtered = reservations;
 
     if (selectedDate) {
-      filtered = filtered.filter((res) => new Date(res.date).toISOString().split("T")[0] === selectedDate);
+      filtered = filtered.filter((res) => res.date === selectedDate);
     }
 
     if (filter) {
@@ -60,7 +66,7 @@ export default function ViewReservations() {
     setFilteredReservations(filtered);
   }, [selectedDate, reservations, filter, searchQuery]);
 
-  // Delete reservation
+  // ✅ Delete reservation function
   const deleteReservation = async (id) => {
     const response = await fetch("/api/deleteReservation", {
       method: "DELETE",
@@ -76,7 +82,7 @@ export default function ViewReservations() {
     }
   };
 
-  // Handle adding a new reservation
+  // ✅ Handle adding a new reservation (Admin)
   const handleAddReservation = async (e) => {
     e.preventDefault();
 
@@ -88,7 +94,7 @@ export default function ViewReservations() {
     const response = await fetch("/api/saveReservation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newReservation, isAdmin: true }), // ✅ Add isAdmin flag
+      body: JSON.stringify({ ...newReservation, isAdmin: true }), // ✅ Admin flag
     });
 
     if (response.ok) {
@@ -99,12 +105,11 @@ export default function ViewReservations() {
     }
   };
 
-
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white min-h-screen">
       <h2 className="text-2xl font-bold mb-4 text-center">All Reservations</h2>
 
-      {/* Add New Reservation Form */}
+      {/* ✅ Add New Reservation Form */}
       <div className="border p-4 mb-6 rounded bg-gray-100">
         <h3 className="text-lg font-semibold mb-3 text-center">Add New Reservation</h3>
         <form onSubmit={handleAddReservation}>
@@ -168,7 +173,7 @@ export default function ViewReservations() {
         </form>
       </div>
 
-      {/* Day Selector */}
+      {/* ✅ Day Selector */}
       <div className="mb-4">
         <label className="block text-lg font-semibold">Select Day:</label>
         <select
@@ -190,7 +195,7 @@ export default function ViewReservations() {
         </select>
       </div>
 
-      {/* Filter Section */}
+      {/* ✅ Filter Section */}
       <div className="mb-4 flex gap-4">
         <select
           className="p-2 border rounded text-black"
@@ -211,7 +216,7 @@ export default function ViewReservations() {
         />
       </div>
 
-      {/* Reservations List */}
+      {/* ✅ Reservations List */}
       <ul>
         {filteredReservations.map((res) => (
           <li key={res._id} className="border p-4 mb-2 rounded flex justify-between items-center bg-gray-100">
@@ -221,12 +226,6 @@ export default function ViewReservations() {
               <p><strong>People:</strong> {res.people}</p>
               <p><strong>Type:</strong> {res.type}</p>
               <p><strong>Date:</strong> {res.date}</p>
-            </div>
-            <div>
-              <button className="bg-blue-500 text-white px-4 py-1 rounded mr-2">Update</button>
-              <button className="bg-red-500 text-white px-4 py-1 rounded" onClick={() => deleteReservation(res._id)}>
-                Delete
-              </button>
             </div>
           </li>
         ))}
