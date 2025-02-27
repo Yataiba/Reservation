@@ -1,20 +1,33 @@
-import { connectToDatabase } from "../dbConnect";
+import dbConnect from "../dbConnect";
+import mongoose from "mongoose";
 import { ObjectId } from "mongodb";
 
 export const runtime = "nodejs"; // Ensure server environment
 
 export async function PUT(req) {
   try {
-    const { db } = await connectToDatabase();
-    const { id, name, phone, people, type, date } = await req.json(); // Include date in request
+    // ✅ Ensure database connection
+    await dbConnect();
+    const db = mongoose.connection.db;
+
+    // ✅ Include date in request
+    const { id, name, phone, people, type, date } = await req.json();
 
     if (!id) {
       return new Response(JSON.stringify({ error: "Reservation ID is required" }), { status: 400 });
     }
 
+    // ✅ Prepare update fields dynamically (to avoid overwriting with undefined values)
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (phone) updateFields.phone = phone;
+    if (people) updateFields.people = people;
+    if (type) updateFields.type = type;
+    if (date) updateFields.date = date; // ✅ Ensure date is updated as well
+
     const result = await db.collection("reservations").updateOne(
       { _id: new ObjectId(id) },
-      { $set: { name, phone, people, type, date } } // Ensure date is updated as well
+      { $set: updateFields }
     );
 
     if (result.modifiedCount === 0) {
@@ -24,7 +37,7 @@ export async function PUT(req) {
     return new Response(JSON.stringify({ message: "Reservation updated successfully" }), { status: 200 });
   } catch (error) {
     console.error("Error updating reservation:", error);
-    return new Response(JSON.stringify({ error: "Failed to update reservation" }), { status: 500 });
+    return new Response(JSON.stringify({ error: "Failed to update reservation", details: error.message }), { status: 500 });
   }
 }
 

@@ -1,23 +1,40 @@
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
-const uri = process.env.MONGODB_URI;
-const options = { useNewUrlParser: true, useUnifiedTopology: true };
+const MONGODB_URI = process.env.MONGODB_URI;
 
-let client;
-let clientPromise;
-
-if (!process.env.MONGODB_URI) {
-  throw new Error("Please add MONGODB_URI to .env.local");
+if (!MONGODB_URI) {
+  throw new Error("⚠️ MONGODB_URI is missing in environment variables.");
 }
 
-if (!global._mongoClientPromise) {
-  client = new MongoClient(uri, options);
-  global._mongoClientPromise = client.connect();
-}
-clientPromise = global._mongoClientPromise;
+let cached = global.mongoose;
 
-export async function connectToDatabase() {
-  const client = await clientPromise;
-  const db = client.db("ramadan_reservations");
-  return { db, client };
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
+
+async function dbConnect() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      })
+      .then((mongoose) => {
+        console.log("✅ MongoDB Connected");
+        return mongoose.connection.db; // ✅ FIX: Return the actual database
+      })
+      .catch((err) => {
+        console.error("❌ MongoDB Connection Error:", err);
+        throw err;
+      });
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+export default dbConnect;

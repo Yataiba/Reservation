@@ -1,10 +1,14 @@
-import { connectToDatabase } from "../dbConnect";
+import dbConnect from "../dbConnect";
+import mongoose from "mongoose";
+
 
 export const runtime = "nodejs"; // Ensure server environment
 
 export async function GET(req) {
   try {
-    const { db } = await connectToDatabase();
+    await dbConnect();
+    const db = mongoose.connection.db;
+
     const url = new URL(req.url);
     const day = url.searchParams.get("day");
 
@@ -27,7 +31,9 @@ export async function GET(req) {
 
 export async function PUT(req) {
   try {
-    const { db } = await connectToDatabase();
+    await dbConnect();
+    const db = mongoose.connection.db;
+
     const { day, date, menu } = await req.json();
 
     if (!day || !date || !menu) {

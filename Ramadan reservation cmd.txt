@@ -3,3 +3,22 @@ code .
 npm run dev -- -p 4000
 
 
+cd Desktop/ramadan-reservation
+npm run dev -- -p 4000
+
+
+
+git config --global user.name "Yataiba"
+git config --global user.email "yataiba.tr@gmail.com"
+
+
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/Yataiba/Reservation
+git push -u origin main
+
+
+MONGODB_URI=mongodb://localhost:27017/ramadan_reservations
+mongodb+srv://Yataiba:Qazwsx123@reservation.qhidl.mongodb.net/
