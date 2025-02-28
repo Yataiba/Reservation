@@ -178,8 +178,9 @@ export default function ViewReservations() {
             value={newReservation.type}
             onChange={(e) => setNewReservation({ ...newReservation, type: e.target.value })}
           >
-            <option value="Dine-In">Dine-In</option>
+            <option value="Dine-in">Dine-In</option>
             <option value="Takeaway">Takeaway</option>
+            <option value="Delivery">Delivery</option>
           </select>
           <select
             className="w-full p-2 border rounded mb-2 text-black"
@@ -222,8 +223,9 @@ export default function ViewReservations() {
           onChange={(e) => setFilter(e.target.value)}
         >
           <option value="">All</option>
-          <option value="Dine-In">Dine-In</option>
+          <option value="Dine-in">Dine-In</option>
           <option value="Takeaway">Takeaway</option>
+          <option value="Delivery">Delivery</option>
         </select>
 
         <input
@@ -262,11 +264,11 @@ export default function ViewReservations() {
       {editReservation && (
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h2 className="text-xl font-bold mb-4">Edit Reservation</h2>
+            <h2 className="text-xl font-bold mb-4 text-black">Edit Reservation</h2>
 
-            <label className="block">Name:</label>
+            <label className="block text-black">Name:</label>
             <input
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               type="text"
               value={editReservation.name}
               onChange={(e) =>
@@ -274,9 +276,9 @@ export default function ViewReservations() {
               }
             />
 
-            <label className="block mt-2">Phone:</label>
+            <label className="block mt-2 text-black" text-black>Phone:</label>
             <input
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               type="text"
               value={editReservation.phone}
               onChange={(e) =>
@@ -287,9 +289,9 @@ export default function ViewReservations() {
               }
             />
 
-            <label className="block mt-2">People:</label>
+            <label className="block mt-2 text-black">People:</label>
             <input
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               type="number"
               value={editReservation.people}
               onChange={(e) =>
@@ -300,20 +302,21 @@ export default function ViewReservations() {
               }
             />
 
-            <label className="block mt-2">Type:</label>
+            <label className="block mt-2 text-black">Type:</label>
             <select
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               value={editReservation.type}
               onChange={(e) =>
                 setEditReservation({ ...editReservation, type: e.target.value })
               }
             >
-              <option value="dine-in">Dine-In</option>
-              <option value="takeaway">Takeaway</option>
+              <option value="Dine-in">Dine-In</option>
+              <option value="Takeaway">Takeaway</option>
+              <option value="Delivery">Delivery</option>
             </select>
-            <label className="block mt-2">Date:</label>
+            <label className="block mt-2 text-black">Date:</label>
             <select
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded text-black"
               value={editReservation.date}
               onChange={(e) =>
                 setEditReservation({ ...editReservation, date: e.target.value })

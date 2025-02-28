@@ -164,6 +164,7 @@ export default function RamadanReservation() {
             >
               <option value="Dine-In">Dine-In</option>
               <option value="Takeaway">Takeaway</option>
+              <option value="Delivery">Delivery</option>
             </select>
 
             <button
