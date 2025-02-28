@@ -1,0 +1,241 @@
+"use client";
+
+import { useState, useEffect } from "react";
+
+export default function TableMenu() {
+  const [menu, setMenu] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [groupedMenu, setGroupedMenu] = useState({});
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [viewCart, setViewCart] = useState(false);
+  const [tableNumber, setTableNumber] = useState(""); // Store table number
+  const [orderSent, setOrderSent] = useState(false);
+  const [waitingApproval, setWaitingApproval] = useState(false);
+
+  const placeholderImage = "/placeholder.jpg"; // Placeholder image for missing products
+
+  useEffect(() => {
+    fetch("/api/menu")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.error) {
+          setMenu(data);
+          groupMenuByCategory(data);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching menu:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  const groupMenuByCategory = (items) => {
+    const grouped = {};
+    const categoryList = new Set();
+
+    items.forEach((item) => {
+      const categoryName = Array.isArray(item.categ_id) ? item.categ_id[1] : "Uncategorized";
+
+      if (categoryName === "All / Saleable / PoS") return; // Omit this category
+
+      if (!grouped[categoryName]) {
+        grouped[categoryName] = [];
+      }
+      grouped[categoryName].push(item);
+      categoryList.add(categoryName);
+    });
+
+    setGroupedMenu(grouped);
+    setCategories([...categoryList]);
+    setSelectedCategory([...categoryList][0]); // Default category selection
+  };
+
+  const addToCart = (item) => {
+    setCart([...cart, item]);
+  };
+
+  const removeFromCart = (index) => {
+    setCart(cart.filter((_, i) => i !== index));
+  };
+
+  const confirmOrder = async () => {
+    if (!tableNumber) {
+      alert("Please enter your table number before confirming the order.");
+      return;
+    }
+    setWaitingApproval(true);
+
+    const orderData = {
+      tableNumber,
+      items: cart,
+      status: "pending", // Order needs admin approval
+    };
+
+    try {
+      const response = await fetch("/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderData),
+      });
+
+      if (response.ok) {
+        alert("Order sent for admin approval.");
+        setOrderSent(true);
+        setCart([]); // Clear cart after order submission
+      } else {
+        alert("Failed to send order.");
+        setWaitingApproval(false);
+      }
+    } catch (error) {
+      console.error("Error sending order:", error);
+      setWaitingApproval(false);
+    }
+  };
+
+  return (
+    <div className="max-w-5xl mx-auto p-6 bg-white min-h-screen">
+      <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Menu</h2>
+
+      {/* Toggle between Menu & Cart */}
+      <div className="flex justify-center mb-4 gap-2 flex-wrap">
+        <button
+          onClick={() => setViewCart(false)}
+          className={`px-4 py-2 rounded-lg font-semibold transition ${
+            !viewCart ? "bg-blue-500 text-white" : "bg-gray-200 text-black hover:bg-gray-300"
+          }`}
+        >
+          Menu
+        </button>
+        <button
+          onClick={() => setViewCart(true)}
+          className={`px-4 py-2 rounded-lg font-semibold transition ${
+            viewCart ? "bg-blue-500 text-white" : "bg-gray-200 text-black hover:bg-gray-300"
+          }`}
+        >
+          Cart ({cart.length})
+        </button>
+      </div>
+
+      {/* If viewing cart */}
+      {viewCart ? (
+        <div className="bg-gray-50 p-4 rounded-lg shadow-lg">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">Order Summary</h3>
+          <div className="mb-4">
+            <label className="block text-gray-700 font-bold mb-1">Enter Table Number:</label>
+            <input
+              type="number"
+              className="p-2 border rounded w-full"
+              value={tableNumber}
+              onChange={(e) => setTableNumber(e.target.value)}
+            />
+          </div>
+          {cart.length === 0 ? (
+            <p className="text-center text-gray-500">Your cart is empty.</p>
+          ) : (
+            <ul>
+              {cart.map((item, index) => (
+                <li
+                  key={index}
+                  className="border p-2 rounded mt-2 bg-white flex justify-between items-center shadow-md"
+                >
+                  <span>{item.name}</span>
+                  <span className="text-green-600 font-bold">₺{item.list_price.toFixed(2)}</span>
+                  <button
+                    onClick={() => removeFromCart(index)}
+                    className="text-red-500 text-sm font-semibold"
+                  >
+                    ✖
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            onClick={confirmOrder}
+            disabled={cart.length === 0 || waitingApproval}
+            className={`mt-4 w-full p-2 rounded font-semibold transition ${
+              waitingApproval
+                ? "bg-gray-500 text-white cursor-not-allowed"
+                : "bg-orange-500 text-white hover:bg-orange-600"
+            }`}
+          >
+            {waitingApproval ? "Waiting for Admin Approval..." : "Confirm Order"}
+          </button>
+          <button
+            onClick={() => setCart([])}
+            className="mt-2 bg-red-500 text-white p-2 rounded w-full font-semibold hover:bg-red-600 transition"
+          >
+            Clear Order
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Category Navigation */}
+          <div className="flex justify-center mb-4 gap-2 flex-wrap">
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                className={`px-4 py-2 rounded-lg font-semibold transition ${
+                  selectedCategory === category ? "bg-blue-500 text-white" : "bg-gray-200 text-black hover:bg-gray-300"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <p className="text-center text-gray-500">Loading menu...</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {groupedMenu[selectedCategory]?.map((item) => (
+                <div key={item.id} className="border p-4 rounded-lg shadow-md bg-gray-50 hover:shadow-lg transition">
+                  <img 
+                    src={item.image || placeholderImage} 
+                    alt={item.name} 
+                    className="w-full h-40 object-cover mb-2 rounded"
+                    onError={(e) => (e.target.src = placeholderImage)}
+                  />
+                  <p className="font-semibold text-lg text-gray-900">{item.name}</p>
+                  <p className="text-gray-700 font-bold">Price: <span className="text-green-600">₺{item.list_price.toFixed(2)}</span></p>
+                  <button
+                    onClick={() => addToCart(item)}
+                    className="mt-2 w-full bg-orange-500 text-white p-2 rounded font-semibold hover:bg-orange-600 transition"
+                  >
+                    Add to Order
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+
+7c75ccfd12563bcf49ecb3dff582a61c4ade3884
+
+
+
+fetch("http://localhost:3000/api/odoo/order", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    table_number: 5,
+    floor_name: "خارج",
+    product_id: 123,
+    product_name: "Shawarma Wrap",
+    quantity: 2
+  })
+})
+.then(response => response.json())
+.then(data => console.log("Response from API:", data))
+.catch(error => console.error("Error:", error));

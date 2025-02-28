@@ -47,10 +47,11 @@ export default function RamadanReservation() {
     const updateCountdown = () => {
       const now = new Date();
       const openTime = new Date();
-      openTime.setHours(19, 0, 0, 0);
+      openTime.setHours(19, 0, 0, 0); // Opens at 19:00 (7:00 PM)
 
       const closeTime = new Date();
-      closeTime.setHours(23, 59, 59, 999);
+      closeTime.setDate(closeTime.getDate() + 1); // Move to the next day
+      closeTime.setHours(12, 0, 0, 0); // Closes at 12:00 noon
 
       if (now < openTime) {
         const timeLeft = openTime - now;
@@ -84,7 +85,7 @@ export default function RamadanReservation() {
     e.preventDefault();
 
     if (!canReserve) {
-      alert("Reservations are only allowed between 19:00 - 23:59.");
+      alert("Reservations are only allowed between 19:00 - 12:00 noon.");
       return;
     }
 
@@ -104,8 +105,8 @@ export default function RamadanReservation() {
 
   return (
     <div className="max-w-xl mx-auto p-6 bg-white min-h-screen text-center">
-      <h1 className="text-2xl font-bold text-black">Ramadan Pre-Reservation</h1>
-
+      <h1 className="text-3xl font-bold text-black">Ramadan Mubarak 2025</h1>
+      <h3 className=" font-bold text-black">Reservation For Tomorrow's Menu</h3>
       {loading && <p className="text-blue-500">Loading menu...</p>}
 
       {error && (
@@ -116,12 +117,12 @@ export default function RamadanReservation() {
 
       {!loading && !error && day && (
         <>
-          <h2 className="text-lg font-semibold mt-2 text-black">
-            Reservation for: <strong>{date}</strong>
+          <h2 className="text-lg font-semibold mt-2 text-black text-left">
+            Reservation Date: <strong>{date}</strong>
           </h2>
 
-          <p className="text-md text-black">Menu: <strong>{menu}</strong></p>
-          <p className="text-red-500">{countdown}</p>
+          <p className="text-md text-black text-left">Menu: <strong>{menu}</strong></p>
+          <p className="text-2xl text-red-500">{countdown}</p>
 
           <form onSubmit={handleSubmit} className="mt-4">
             <input
