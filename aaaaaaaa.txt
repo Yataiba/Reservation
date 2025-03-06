@@ -239,3 +239,20 @@ fetch("http://localhost:3000/api/odoo/order", {
 .then(response => response.json())
 .then(data => console.log("Response from API:", data))
 .catch(error => console.error("Error:", error));
+
+
+
+fetch("http://localhost:3000/api/odoo/order", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    product_id: 123,
+    quantity: 2,
+    table_id: 5 
+  })
+})
+.then(response => response.json())
+.then(data => console.log("Response from API:", data))
+.catch(error => console.error("Error:", error));
+
+10 adet Taze Falafel + sebze + hummus + Lavaş
