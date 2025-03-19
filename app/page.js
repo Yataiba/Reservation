@@ -46,26 +46,36 @@ export default function RamadanReservation() {
 
     const updateCountdown = () => {
       const now = new Date();
-      const openTime = new Date();
-      openTime.setHours(19, 0, 0, 0); // Opens at 19:00 (7:00 PM)
 
+      // Open time: Today at 19:00 (7:00 PM)
+      const openTime = new Date();
+      openTime.setHours(19, 0, 0, 0);
+
+      // Close time: Next day at 12:00 (Noon)
       const closeTime = new Date();
-      closeTime.setDate(closeTime.getDate() + 1); // Move to the next day
-      closeTime.setHours(12, 0, 0, 0); // Closes at 12:00 noon
+      closeTime.setDate(closeTime.getDate() + 1);
+      closeTime.setHours(12, 0, 0, 0);
+
+      console.log(`Current Time: ${now}`);
+      console.log(`Open Time: ${openTime}`);
+      console.log(`Close Time: ${closeTime}`);
 
       if (now < openTime) {
-        const timeLeft = openTime - now;
+        // Before 19:00 (7 PM) today
+        const timeLeft = openTime.getTime() - now.getTime();
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         setCountdown(`Reservations open in ${hours}h ${minutes}m`);
         setCanReserve(false);
-      } else if (now >= openTime && now <= closeTime) {
-        const timeLeft = closeTime - now;
+      } else if (now >= openTime && now < closeTime) {
+        // Between 19:00 (7 PM) today and 12:00 (Noon) tomorrow
+        const timeLeft = closeTime.getTime() - now.getTime();
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         setCountdown(`${hours}h ${minutes}m left to reserve`);
         setCanReserve(true);
       } else {
+        // After 12:00 noon tomorrow
         setCountdown("Reservations are closed for today.");
         setCanReserve(false);
       }
@@ -121,7 +131,9 @@ export default function RamadanReservation() {
             Reservation Date: <strong>{date}</strong>
           </h2>
 
-          <p className="text-md text-black text-left">Menu: <strong>{menu}</strong></p>
+          <p className="text-md text-black text-left">
+            Menu: <strong>{menu}</strong>
+          </p>
           <p className="text-2xl text-red-500">{countdown}</p>
 
           <form onSubmit={handleSubmit} className="mt-4">
